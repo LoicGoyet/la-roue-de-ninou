@@ -1,0 +1,342 @@
+// Actions
+const ADD_ITEM = 'lutti-wheel/setups/ADD_ITEM';
+const EDIT_ITEM = 'lutti-wheel/setups/EDIT_ITEM';
+const REMOVE_ITEM = 'lutti-wheel/setups/REMOVE_ITEM';
+const UPDATE_SELECTED_INDEX = 'lutti-wheel/setups/UPDATE_SELECTED_INDEX';
+const RESET_SELECTED_INDEXES = 'lutti-wheel/setups/RESET_SELECTED_INDEXES';
+const UPDATE_ROTATION = 'lutti-wheel/setups/UPDATE_ROTATION';
+const TOOGLE_ITEM_SELECTION = 'lutti-wheel/setups/TOOGLE_ITEM_SELECTION';
+const RETITLE_SETUP = 'lutti-wheel/setups/RETITLE_SETUP';
+
+const ADD_SETUP = 'lutti-wheel/setups/ADD_SETUP';
+const SELECT_ACTIVE_SETUP = 'lutti-wheel/setups/SELECT_ACTIVE_SETUP';
+const REMOVE_ACTIVE_SETUP = 'lutti-wheel/setups/REMOVE_ACTIVE_SETUP';
+
+// Bomb Party
+
+// Default State
+const defaultState = {
+  byId: {
+    0: {
+      id: 0,
+      selectedIndex: 0,
+      selectedIndexes: [],
+      rotation: 90,
+      title: 'La roue des jeux',
+      data: [
+        {
+          label: 'Haxball',
+          color: '#8da86b',
+        },
+        {
+          label: 'Codenames',
+          color: '#6e1d11',
+        },
+        {
+          label: 'Gartic Phone',
+          color: 'rgb(92,30,166)',
+        },
+        {
+          label: 'Skribbl.io',
+          color: '#1c3d83',
+        },
+        {
+          label: 'Petit bac',
+          color: '#0E147A',
+        },
+        {
+          label: 'Among us',
+          color: 'rgb(235, 0, 20)',
+        },
+        {
+          label: 'Wolfy',
+          color: '#0e0e14',
+        },
+        {
+          label: 'Bomb Party',
+          color: '#7d6fa0',
+        },
+      ],
+    },
+  },
+  allIds: [0],
+  activeId: 0,
+};
+
+const freshSetup = {
+  id: 0,
+  selectedIndex: 0,
+  selectedIndexes: [],
+  rotation: 90,
+  title: 'fresh setup setup',
+  data: [
+    {
+      label: 'section 1',
+      color: '#0c3953',
+    },
+    {
+      label: 'section 2',
+      color: '#0E147A',
+    },
+  ],
+};
+
+// Reducer
+export default function reducer(state = defaultState, action) {
+  switch (action.type) {
+    case ADD_ITEM: {
+      return {
+        ...state,
+        byId: {
+          ...state.byId,
+          [state.activeId]: {
+            ...state.byId[state.activeId],
+            selectedIndex: freshSetup.selectedIndex,
+            selectedIndexes: freshSetup.selectedIndexes,
+            rotation: freshSetup.rotation,
+            data: [
+              ...state.byId[state.activeId].data,
+              {
+                label: action.label,
+                color: action.color,
+              },
+            ],
+          },
+        },
+      };
+    }
+
+    case EDIT_ITEM: {
+      return {
+        ...state,
+        byId: {
+          ...state.byId,
+          [state.activeId]: {
+            ...state.byId[state.activeId],
+            data: [
+              ...state.byId[state.activeId].data.slice(0, action.index),
+              action.item,
+              ...state.byId[state.activeId].data.slice(action.index + 1),
+            ],
+          },
+        },
+      };
+    }
+
+    case REMOVE_ITEM: {
+      return {
+        ...state,
+        byId: {
+          ...state.byId,
+          [state.activeId]: {
+            ...state.byId[state.activeId],
+            selectedIndex: 0,
+            selectedIndexes: [],
+            rotation: 90,
+            data: [
+              // from the start to the one we want to delete
+              ...state.byId[state.activeId].data.slice(0, action.index),
+              // after the deleted one, to the end
+              ...state.byId[state.activeId].data.slice(action.index + 1),
+            ],
+          },
+        },
+      };
+    }
+
+    case UPDATE_SELECTED_INDEX: {
+      return {
+        ...state,
+        byId: {
+          ...state.byId,
+          [state.activeId]: {
+            ...state.byId[state.activeId],
+            selectedIndex: action.index,
+            selectedIndexes: state.byId[state.activeId].selectedIndexes
+              ? [...state.byId[state.activeId].selectedIndexes, action.index]
+              : [action.index],
+          },
+        },
+      };
+    }
+
+    case RESET_SELECTED_INDEXES: {
+      return {
+        ...state,
+        byId: {
+          ...state.byId,
+          [state.activeId]: {
+            ...state.byId[state.activeId],
+            selectedIndex: freshSetup.selectedIndex,
+            selectedIndexes: freshSetup.selectedIndexes,
+            rotation: freshSetup.rotation,
+          },
+        },
+      };
+    }
+
+    case UPDATE_ROTATION: {
+      return {
+        ...state,
+        byId: {
+          ...state.byId,
+          [state.activeId]: {
+            ...state.byId[state.activeId],
+            rotation: action.rotation,
+          },
+        },
+      };
+    }
+
+    case TOOGLE_ITEM_SELECTION: {
+      // if index is already in selectedIndexes
+      const { selectedIndexes } = state.byId[state.activeId];
+      let newSelectedIndexes = [...selectedIndexes, action.index];
+
+      if (selectedIndexes.indexOf(action.index) >= 0) {
+        newSelectedIndexes = selectedIndexes.filter(index => index !== action.index);
+      }
+
+      return {
+        ...state,
+        byId: {
+          ...state.byId,
+          [state.activeId]: {
+            ...state.byId[state.activeId],
+            selectedIndexes: newSelectedIndexes,
+          },
+        },
+      };
+    }
+
+    case REMOVE_ACTIVE_SETUP: {
+      const allIds = state.allIds.filter(setupId => setupId !== state.activeId);
+      return {
+        ...state,
+        byId: allIds.reduce(
+          (acc, setupId) => ({
+            ...acc,
+            [setupId]: state.byId[setupId],
+          }),
+          {}
+        ),
+        allIds,
+        activeId: allIds[0],
+      };
+    }
+
+    case RETITLE_SETUP: {
+      return {
+        ...state,
+        byId: {
+          ...state.byId,
+          [state.activeId]: {
+            ...state.byId[state.activeId],
+            title: action.title,
+          },
+        },
+      };
+    }
+
+    case ADD_SETUP: {
+      // get setup id
+      const id = state.allIds[state.allIds.length - 1] + 1;
+
+      return {
+        ...state,
+        byId: {
+          ...state.byId,
+          [state.activeId]: {
+            ...state.byId[state.activeId],
+            selectedIndex: freshSetup.selectedIndex,
+            selectedIndexes: freshSetup.selectedIndexes,
+            rotation: freshSetup.rotation,
+          },
+          [id]: {
+            ...freshSetup,
+            title: `setup ${id}`,
+            id,
+          },
+        },
+        allIds: [...state.allIds, id],
+        activeId: id,
+      };
+    }
+
+    case SELECT_ACTIVE_SETUP: {
+      return {
+        ...state,
+        byId: {
+          ...state.byId,
+          [state.activeId]: {
+            ...state.byId[state.activeId],
+            selectedIndex: freshSetup.selectedIndex,
+            selectedIndexes: freshSetup.selectedIndexes,
+            rotation: freshSetup.rotation,
+          },
+        },
+        activeId: action.setupId,
+      };
+    }
+
+    default: {
+      return state;
+    }
+  }
+}
+
+// Action Creators
+export const addItem = (label, color) => ({
+  type: ADD_ITEM,
+  label,
+  color,
+});
+
+export const editItem = (index, item) => ({
+  type: EDIT_ITEM,
+  index,
+  item,
+});
+
+export const removeItem = index => ({
+  type: REMOVE_ITEM,
+  index,
+});
+
+export const updateSelectedIndex = index => ({
+  type: UPDATE_SELECTED_INDEX,
+  index,
+});
+
+export const resetSelectedIndexes = setupId => ({
+  type: RESET_SELECTED_INDEXES,
+  setupId,
+});
+
+export const updateRotation = rotation => ({
+  type: UPDATE_ROTATION,
+  rotation,
+});
+
+export const toogleItemSelection = index => ({
+  type: TOOGLE_ITEM_SELECTION,
+  index,
+});
+
+export const retitleSetup = title => ({
+  type: RETITLE_SETUP,
+  title,
+});
+
+export const addSetup = () => ({
+  type: ADD_SETUP,
+});
+
+export const selectActiveSetup = setupId => ({
+  type: SELECT_ACTIVE_SETUP,
+  setupId,
+});
+
+export const removeActiveSetup = () => ({
+  type: REMOVE_ACTIVE_SETUP,
+});
