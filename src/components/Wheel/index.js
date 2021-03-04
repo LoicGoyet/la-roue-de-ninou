@@ -85,7 +85,7 @@ class Wheel extends React.Component {
             this.setState({
               playWheelEndSound: Sound.status.STOPPED,
             });
-          }, 3000);
+          }, 4000);
         }
       );
     });
