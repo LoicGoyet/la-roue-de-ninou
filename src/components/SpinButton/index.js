@@ -54,4 +54,5 @@ const Button = styled.button`
 
 const Img = styled.img`
   height: 60px;
+  pointer-events: none;
 `;

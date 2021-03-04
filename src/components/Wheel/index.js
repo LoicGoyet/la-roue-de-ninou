@@ -4,7 +4,9 @@ import styled from 'styled-components';
 import Sound from 'react-sound';
 
 import WheelSection from '../WheelSection';
-import RollingSound from '../../sounds/rolling.mp3';
+import RollingSound from '../../sounds/sensations.mp3';
+import HoverSound from '../../sounds/appuis.mp3';
+import EndSound from '../../sounds/mememerde.mp3';
 import SpinButton from '../SpinButton';
 import Pico from './images/pico.png';
 
@@ -36,10 +38,13 @@ class Wheel extends React.Component {
     super(props);
 
     this.shuffleSection = this.shuffleSection.bind(this);
-    this.playSound = this.playSound.bind(this);
+    this.handleWheelStartPlaySound = this.handleWheelStartPlaySound.bind(this);
+    this.handleHoverSound = this.handleHoverSound.bind(this);
 
     this.state = {
-      playSound: Sound.status.STOPPED,
+      playHoverSound: Sound.status.STOPPED,
+      playWheelStartSound: Sound.status.STOPPED,
+      playWheelEndSound: Sound.status.STOPPED,
       highlightSelected: false,
     };
   }
@@ -52,16 +57,59 @@ class Wheel extends React.Component {
     }
   }
 
-  playSound() {
-    return this.setState({ playSound: Sound.status.STOPPED }, () => {
-      this.setState({
-        playSound: Sound.status.PLAYING,
-      });
+  handleWheelStartPlaySound() {
+    return this.setState({ playWheelStartSound: Sound.status.STOPPED }, () => {
+      this.setState(
+        {
+          playWheelStartSound: Sound.status.PLAYING,
+        },
+        () => {
+          setTimeout(() => {
+            this.setState({
+              playWheelStartSound: Sound.status.STOPPED,
+            });
+          }, 3000);
+        }
+      );
+    });
+  }
+
+  handleWheelEndPlaySound() {
+    return this.setState({ playWheelEndSound: Sound.status.STOPPED }, () => {
+      this.setState(
+        {
+          playWheelEndSound: Sound.status.PLAYING,
+        },
+        () => {
+          setTimeout(() => {
+            this.setState({
+              playWheelEndSound: Sound.status.STOPPED,
+            });
+          }, 3000);
+        }
+      );
+    });
+  }
+
+  handleHoverSound() {
+    return this.setState({ playHoverSound: Sound.status.STOPPED }, () => {
+      this.setState(
+        {
+          playHoverSound: Sound.status.PLAYING,
+        },
+        () => {
+          setTimeout(() => {
+            this.setState({
+              playHoverSound: Sound.status.STOPPED,
+            });
+          }, 2000);
+        }
+      );
     });
   }
 
   shuffleSection() {
-    this.playSound();
+    this.handleWheelStartPlaySound();
     this.setState({ highlightSelected: false });
 
     const previousSelectedIndex = this.props.selectedIndex;
@@ -81,6 +129,7 @@ class Wheel extends React.Component {
     return setTimeout(() => {
       if (this.button) this.button.blur();
       this.setState({ highlightSelected: true });
+      this.handleWheelEndPlaySound();
     }, 7000);
   }
 
@@ -92,17 +141,29 @@ class Wheel extends React.Component {
         <PicoImage src={Pico} />
 
         {selectedIndexes && selectedIndexes.length < this.props.sections.length && (
-          <SpinButton
-            onClick={this.shuffleSection}
-            reference={button => {
-              this.button = button;
-            }}
-          />
+          <div onMouseOver={this.handleHoverSound}>
+            <SpinButton
+              onClick={this.shuffleSection}
+              reference={button => {
+                this.button = button;
+              }}
+            />
+          </div>
         )}
 
         {selectedIndexes && selectedIndexes.length >= this.props.sections.length && <SpinButtonPlaceholder />}
 
-        <Sound volume={this.props.soundOn ? 100 : 0} url={RollingSound} playStatus={this.state.playSound} />
+        {this.state.playHoverSound === Sound.status.PLAYING && (
+          <Sound volume={this.props.soundOn ? 100 : 0} url={HoverSound} playStatus={this.state.playHoverSound} />
+        )}
+
+        {this.state.playWheelStartSound === Sound.status.PLAYING && (
+          <Sound volume={this.props.soundOn ? 100 : 0} url={RollingSound} playStatus={this.state.playWheelStartSound} />
+        )}
+
+        {this.state.playWheelEndSound === Sound.status.PLAYING && (
+          <Sound volume={this.props.soundOn ? 100 : 0} url={EndSound} playStatus={this.state.playWheelEndSound} />
+        )}
 
         <Circle turn={this.props.rotation} size={this.props.size}>
           {this.props.sections.map((section, index) => (
